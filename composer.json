@@ -1,0 +1,38 @@
+{
+    "name": "astromool/astromool-php",
+    "description": "Official client for the AstroMool Vedic astrology API (Swiss Ephemeris charts, 90 calculators, PDF reports).",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "astrology",
+        "vedic",
+        "kundli",
+        "jyotish",
+        "swiss-ephemeris",
+        "panchang",
+        "api"
+    ],
+    "homepage": "https://developers.astromool.com/docs",
+    "authors": [
+        {
+            "name": "AstroMool",
+            "email": "developers@astromool.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "AstroMool\\": "src/"
+        }
+    },
+    "support": {
+        "email": "developers@astromool.com",
+        "issues": "https://github.com/astromool/astromool-php/issues",
+        "docs": "https://developers.astromool.com/docs",
+        "source": "https://github.com/astromool/astromool-php"
+    }
+}
