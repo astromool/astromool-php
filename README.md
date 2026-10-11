@@ -30,6 +30,21 @@ Without Composer: `require` `src/AstroMoolException.php`, `src/AstroMool.php` an
 | `geoSearch($q, $limit)` / `timezone($tzId, $date, $time)` | `/v1/geo/*` |
 | `ayanamsas($date)`, `usage()`, `health()` | |
 
+## Charts, dasha, panchang, matching and more (1.1.0)
+
+```php
+$b = ['date' => '1995-08-14', 'time' => '10:35', 'place' => 'Patna'];   // or lat/lon/tz_id; 'birth_time_unknown' => true for a noon chart
+$am->chart($b); $am->divisional($b, 'D9'); $am->ashtakavarga($b);
+$svg = $am->chartImage($b, ['style' => 'south', 'chart' => 'D9']);    // 'format' => 'png' for PNG bytes
+$am->vimshottari($b); $am->yogini($b);
+$am->panchang(['place' => 'Delhi'], '2026-10-11');                   // 3rd argument: 'rahu-kaal' | 'choghadiya' | 'hora'
+$am->ashtakoot($groom, $bride); $am->numerology('Asha Verma', '1995-08-14');
+$am->dosha('mangal', $b); $am->remedy('gemstone', $b);
+$am->transitNatal($b); $am->kpChart($b); $am->westernNatal($b);
+$am->batch([['path' => '/v1/vedic/houses', 'body' => $b], ['method' => 'GET', 'path' => '/v1/usage']]);
+$am->topic('/v1/muhurat/vivah', ['person' => ['place' => 'Delhi'], 'params' => ['year' => 2027]]);   // any topic endpoint
+```
+
 ## Reports
 
 ```php

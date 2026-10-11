@@ -15,7 +15,7 @@ namespace AstroMool;
  */
 final class AstroMool
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
     private const RETRY_STATUS = [500, 502, 503, 504];
 
     /** @var string */ private $apiKey;
@@ -123,6 +123,51 @@ final class AstroMool
     {
         return $this->request('GET', '/v1/health');
     }
+
+    // ---- charts, dasha, panchang, matching, numerology, doshas, remedies, transit, KP, western ($birth may use 'place' => 'Patna')
+    public function chart(array $birth): array { return $this->request('POST', '/v1/vedic/chart', $birth); }
+    public function houses(array $birth): array { return $this->request('POST', '/v1/vedic/houses', $birth); }
+    public function ashtakavarga(array $birth): array { return $this->request('POST', '/v1/vedic/ashtakavarga', $birth); }
+    /** All 16 vargas, or one: divisional($birth, 'D9') */
+    public function divisional(array $birth, ?string $chart = null): array
+    {
+        return $this->request('POST', '/v1/vedic/divisional' . ($chart ? '/' . rawurlencode($chart) : ''), $birth);
+    }
+    /** The chart picture: SVG text or PNG bytes. $opts: style (north|south), chart (D1..D60), format (svg|png), theme, size */
+    public function chartImage(array $birth, array $opts = []): string
+    {
+        $h = ['X-API-Key: ' . $this->apiKey, 'Content-Type: application/json', 'User-Agent: astromool-php/' . self::VERSION];
+        [$status, $raw, $resHeaders] = $this->curl('POST', $this->baseUrl . '/v1/chart/image', json_encode($birth + $opts, JSON_THROW_ON_ERROR), $h);
+        if ($status !== 200) throw new AstroMoolException($status, json_decode($raw, true), $resHeaders['x-request-id'] ?? null);
+        return $raw;
+    }
+    public function vimshottari(array $birth): array { return $this->request('POST', '/v1/dasha/vimshottari', $birth); }
+    public function yogini(array $birth): array { return $this->request('POST', '/v1/dasha/yogini', $birth); }
+    /** $place: ['lat'=>, 'lon'=>, 'tz_id'=>] or ['place' => 'Patna']; $date YYYY-MM-DD (default: today there) */
+    public function panchang(array $place, ?string $date = null, string $part = ''): array
+    {
+        return $this->request('POST', '/v1/panchang' . ($part ? '/' . $part : ''), $place + self::clean(['date' => $date]));
+    }
+    public function ashtakoot(array $person, array $partner): array { return $this->request('POST', '/v1/match/ashtakoot', ['person' => $person, 'partner' => $partner]); }
+    public function numerology(string $name, string $date, ?string $asOf = null): array
+    {
+        return $this->request('POST', '/v1/numerology', self::clean(['name' => $name, 'date' => $date, 'as_of' => $asOf]));
+    }
+    public function dosha(string $name, array $birth): array { return $this->request('POST', '/v1/dosha/' . rawurlencode($name), $birth); }
+    public function remedy(string $name, array $birth): array { return $this->request('POST', '/v1/remedies/' . rawurlencode($name), $birth); }
+    public function transitPositions(array $moment = []): array { return $this->request('POST', '/v1/transit/positions', $moment); }
+    public function transitNatal(array $birth, ?string $onDate = null): array { return $this->request('POST', '/v1/transit/natal', $birth + self::clean(['on_date' => $onDate])); }
+    public function kpChart(array $birth): array { return $this->request('POST', '/v1/kp/chart', $birth); }
+    public function kpRulingPlanets(array $moment = []): array { return $this->request('POST', '/v1/kp/ruling-planets', $moment); }
+    public function kpSubTable(): array { return $this->request('GET', '/v1/kp/sub-table'); }
+    public function westernNatal(array $birth): array { return $this->request('POST', '/v1/western/natal', $birth); }
+    public function synastry(array $person, array $partner): array { return $this->request('POST', '/v1/western/synastry', ['person' => $person, 'partner' => $partner]); }
+    public function progressions(array $birth, ?string $onDate = null): array { return $this->request('POST', '/v1/western/progressions', $birth + self::clean(['on_date' => $onDate])); }
+    public function composite(array $person, array $partner): array { return $this->request('POST', '/v1/western/composite', ['person' => $person, 'partner' => $partner]); }
+    /** Up to 20 calls in one request: [['method' => 'POST', 'path' => '/v1/...', 'body' => [...]], ...] */
+    public function batch(array $requests): array { return $this->request('POST', '/v1/batch', ['requests' => $requests]); }
+    /** Any topic endpoint, e.g. topic('/v1/muhurat/vivah', ['person' => ['place' => 'Delhi'], 'params' => ['year' => 2027]]) */
+    public function topic(string $path, array $body): array { return $this->request('POST', $path, $body); }
 
     public function request(string $method, string $path, ?array $body = null, array $headers = [], array $query = []): array
     {
